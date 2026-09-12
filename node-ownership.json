@@ -4,7 +4,6 @@
   "nodes": {
     "WN_LoadOBJ": "product_placement_node",
     "WN_3DProductPlacement": "product_placement_node",
-    "WN_LiquifyImage": "liquify_node",
     "WN_VideoExactFramesFPS": "video_frame_count_node"
   }
 }

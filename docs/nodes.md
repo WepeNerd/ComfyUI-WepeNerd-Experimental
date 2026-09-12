@@ -70,23 +70,6 @@ OBJ loading and preview accept existing `.obj` files only inside `ComfyUI/input/
 ---
 
 
-## Liquify Image (WepeNerd)
-
-
-**Category:** `WepeNerd/Image`
-
-A self-contained browser liquify editor. Load or drag and drop an image directly inside the node, push-warp it with a brush, and output the latest warped result as a ComfyUI `IMAGE` plus an alpha-derived `MASK`.
-
-Current v1 limitation: this node is self-loading only. It does not yet accept an upstream ComfyUI `IMAGE` input. Larger images are downscaled to a maximum edge of 1536 pixels for editing.
-
-Known limitations:
-
-- The edited PNG is stored as base64 in the workflow JSON, so very large saved workflows are possible.
-- Reopening a workflow restores the last flattened warped image, not the original image plus editable displacement field.
-
----
-
-
 ## Exact Video Frames/FPS (WepeNerd)
 
 

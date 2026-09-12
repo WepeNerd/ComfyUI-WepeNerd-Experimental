@@ -1,6 +1,6 @@
 # ComfyUI-WepeNerd-Experimental
 
-Experimental creative tools for ComfyUI: 3D placement guides, image warping, and
+Experimental creative tools for ComfyUI: 3D placement guides and
 precise video frame controls. Useful features can move into the core toolkit as
 they mature; this package carries a lower stability commitment.
 
@@ -8,7 +8,6 @@ they mature; this package carries a lower stability commitment.
 |---|---|---|
 | **Load OBJ** | Load an OBJ model and render a clay preview | Python 3D libraries and working OpenGL |
 | **3D Product Placement** | Position a clay object over an image and output a composite and mask | Python 3D libraries and working OpenGL |
-| **Liquify Image** | Push-warp a loaded image in a browser editor | None beyond the base package |
 | **Exact Video Frames/FPS** | Produce a chosen frame count and frame rate | FFmpeg and FFprobe |
 
 ## Installation
@@ -26,7 +25,7 @@ python -m pip install -r ComfyUI-WepeNerd-Experimental/requirements.txt
 ```
 
 Restart ComfyUI and refresh the browser. The base install is lightweight and
-loads Liquify and video nodes without the optional 3D renderer. It does not install
+loads video nodes without the optional 3D renderer. It does not install
 GPU wheels, models, or external programs.
 
 For **3D rendering**, also run:
@@ -55,9 +54,6 @@ Absolute paths and symlinks that resolve outside those folders are rejected.
   working OpenGL context. Browser WebGL alone is not sufficient. The tested
   Windows environment encountered `EGL_BAD_PARAMETER` in the Python renderer;
   verify your graphics stack before relying on this path.
-- **Liquify:** loads files directly rather than accepting an upstream IMAGE.
-  The editing resolution is limited to a 1536-pixel maximum edge. Saved workflows
-  embed the flattened result, not an editable displacement history.
 - **Video:** exact modes re-encode. Stream-copy FPS is best effort, and compatible
   players/codecs are required for lossless output. Audio is dropped by default.
 
@@ -69,6 +65,11 @@ This package works independently of [core](https://github.com/WepeNerd/ComfyUI-W
 and [LocalAI](https://github.com/WepeNerd/ComfyUI-WepeNerd-LocalAI). If installing
 core too, use its current version; the older all-in-one core includes duplicate
 experimental nodes.
+
+**Liquify has moved to [core](https://github.com/WepeNerd/ComfyUI-WepeNerd).**
+For workflows containing Liquify, install core **0.2.0 or newer** and update
+Experimental to **0.2.0 or newer** together. Restart ComfyUI and refresh the
+browser. Existing node IDs, connections, and saved paintings are preserved.
 
 [Report an issue](https://github.com/WepeNerd/ComfyUI-WepeNerd-Experimental/issues)
 with a minimal workflow and console output. Originally part of ComfyUI-WepeNerd.
