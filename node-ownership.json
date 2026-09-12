@@ -1,0 +1,10 @@
+{
+  "package": "ComfyUI-WepeNerd-Experimental",
+  "source_commit": "41d75b3a4611d7aabac7f50444aa78eb07bdcbfe",
+  "nodes": {
+    "WN_LoadOBJ": "product_placement_node",
+    "WN_3DProductPlacement": "product_placement_node",
+    "WN_LiquifyImage": "liquify_node",
+    "WN_VideoExactFramesFPS": "video_frame_count_node"
+  }
+}

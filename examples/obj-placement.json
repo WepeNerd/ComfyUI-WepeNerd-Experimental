@@ -1,0 +1,547 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "revision": 0,
+  "last_node_id": 4,
+  "last_link_id": 3,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "WN_LoadOBJ",
+      "pos": [
+        20,
+        20
+      ],
+      "size": [
+        270,
+        314
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "obj_path",
+          "name": "obj_path",
+          "type": "STRING",
+          "widget": {
+            "name": "obj_path"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "preview_size",
+          "name": "preview_size",
+          "type": "INT",
+          "widget": {
+            "name": "preview_size"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "preview_scale",
+          "name": "preview_scale",
+          "type": "FLOAT",
+          "widget": {
+            "name": "preview_scale"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "rotate_x",
+          "name": "rotate_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "rotate_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "rotate_y",
+          "name": "rotate_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "rotate_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "rotate_z",
+          "name": "rotate_z",
+          "type": "FLOAT",
+          "widget": {
+            "name": "rotate_z"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "light_yaw",
+          "name": "light_yaw",
+          "type": "FLOAT",
+          "widget": {
+            "name": "light_yaw"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "light_pitch",
+          "name": "light_pitch",
+          "type": "FLOAT",
+          "widget": {
+            "name": "light_pitch"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "light_intensity",
+          "name": "light_intensity",
+          "type": "FLOAT",
+          "widget": {
+            "name": "light_intensity"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "obj_model",
+          "name": "obj_model",
+          "type": "WN_OBJ3D",
+          "links": [
+            1
+          ]
+        },
+        {
+          "localized_name": "preview",
+          "name": "preview",
+          "type": "IMAGE",
+          "links": null
+        },
+        {
+          "localized_name": "preview_mask",
+          "name": "preview_mask",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "WN_LoadOBJ"
+      },
+      "widgets_values": [
+        "example-cube.obj",
+        512,
+        320,
+        0,
+        30,
+        0,
+        45,
+        45,
+        3,
+        null
+      ],
+      "widgets_values_named": {
+        "obj_path": "example-cube.obj",
+        "preview_size": 512,
+        "preview_scale": 320,
+        "rotate_x": 0,
+        "rotate_y": 30,
+        "rotate_z": 0,
+        "light_yaw": 45,
+        "light_pitch": 45,
+        "light_intensity": 3,
+        "choose .obj to upload": null
+      }
+    },
+    {
+      "id": 2,
+      "type": "WN_3DProductPlacement",
+      "pos": [
+        440,
+        20
+      ],
+      "size": [
+        360,
+        700
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "background_image",
+          "name": "background_image",
+          "type": "IMAGE",
+          "link": 2
+        },
+        {
+          "localized_name": "obj_model",
+          "name": "obj_model",
+          "type": "WN_OBJ3D",
+          "link": 1
+        },
+        {
+          "localized_name": "diffuse_texture",
+          "name": "diffuse_texture",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "localized_name": "bump_map",
+          "name": "bump_map",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "localized_name": "x_offset",
+          "name": "x_offset",
+          "type": "FLOAT",
+          "widget": {
+            "name": "x_offset"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "y_offset",
+          "name": "y_offset",
+          "type": "FLOAT",
+          "widget": {
+            "name": "y_offset"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "z_offset",
+          "name": "z_offset",
+          "type": "FLOAT",
+          "widget": {
+            "name": "z_offset"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "scale",
+          "name": "scale",
+          "type": "FLOAT",
+          "widget": {
+            "name": "scale"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "rotate_x",
+          "name": "rotate_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "rotate_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "rotate_y",
+          "name": "rotate_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "rotate_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "rotate_z",
+          "name": "rotate_z",
+          "type": "FLOAT",
+          "widget": {
+            "name": "rotate_z"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "camera_zoom",
+          "name": "camera_zoom",
+          "type": "FLOAT",
+          "widget": {
+            "name": "camera_zoom"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "light_yaw",
+          "name": "light_yaw",
+          "type": "FLOAT",
+          "widget": {
+            "name": "light_yaw"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "light_pitch",
+          "name": "light_pitch",
+          "type": "FLOAT",
+          "widget": {
+            "name": "light_pitch"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "light_intensity",
+          "name": "light_intensity",
+          "type": "FLOAT",
+          "widget": {
+            "name": "light_intensity"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "wireframe_overlay",
+          "name": "wireframe_overlay",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "wireframe_overlay"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "opacity",
+          "name": "opacity",
+          "type": "FLOAT",
+          "widget": {
+            "name": "opacity"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "bump_scale",
+          "name": "bump_scale",
+          "type": "FLOAT",
+          "widget": {
+            "name": "bump_scale"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "viewport_capture",
+          "name": "viewport_capture",
+          "type": "STRING",
+          "widget": {
+            "name": "viewport_capture"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "viewport_mask_capture",
+          "name": "viewport_mask_capture",
+          "type": "STRING",
+          "widget": {
+            "name": "viewport_mask_capture"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "composite",
+          "name": "composite",
+          "type": "IMAGE",
+          "links": [
+            3
+          ]
+        },
+        {
+          "localized_name": "object_mask",
+          "name": "object_mask",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "WN_3DProductPlacement"
+      },
+      "widgets_values": [
+        0,
+        0,
+        0,
+        300,
+        0,
+        0,
+        0,
+        1,
+        45,
+        45,
+        3,
+        false,
+        1,
+        0.03,
+        "",
+        ""
+      ],
+      "widgets_values_named": {
+        "x_offset": 0,
+        "y_offset": 0,
+        "z_offset": 0,
+        "scale": 300,
+        "rotate_x": 0,
+        "rotate_y": 0,
+        "rotate_z": 0,
+        "camera_zoom": 1,
+        "light_yaw": 45,
+        "light_pitch": 45,
+        "light_intensity": 3,
+        "wireframe_overlay": false,
+        "opacity": 1,
+        "bump_scale": 0.03,
+        "viewport_capture": "",
+        "viewport_mask_capture": ""
+      }
+    },
+    {
+      "id": 3,
+      "type": "EmptyImage",
+      "pos": [
+        20,
+        470
+      ],
+      "size": [
+        270,
+        130
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "width",
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "height",
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "batch_size",
+          "name": "batch_size",
+          "type": "INT",
+          "widget": {
+            "name": "batch_size"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "color",
+          "name": "color",
+          "type": "INT",
+          "widget": {
+            "name": "color"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            2
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EmptyImage"
+      },
+      "widgets_values": [
+        512,
+        512,
+        1,
+        0
+      ],
+      "widgets_values_named": {
+        "width": 512,
+        "height": 512,
+        "batch_size": 1,
+        "color": 0
+      }
+    },
+    {
+      "id": 4,
+      "type": "PreviewImage",
+      "pos": [
+        1060,
+        20
+      ],
+      "size": [
+        140,
+        26
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      }
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      1,
+      "WN_OBJ3D"
+    ],
+    [
+      2,
+      3,
+      0,
+      2,
+      0,
+      "IMAGE"
+    ],
+    [
+      3,
+      2,
+      0,
+      4,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.9,
+      "offset": [
+        416,
+        110
+      ]
+    }
+  },
+  "version": 0.4
+}
