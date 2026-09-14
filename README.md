@@ -9,6 +9,7 @@ they mature; this package carries a lower stability commitment.
 | **Load OBJ** | Load an OBJ model and render a clay preview | Python 3D libraries and working OpenGL |
 | **3D Product Placement** | Position a clay object over an image and output a composite and mask | Python 3D libraries and working OpenGL |
 | **Exact Video Frames/FPS** | Produce a chosen frame count and frame rate | FFmpeg and FFprobe |
+| **H3 RefMod** | Create, save, load, and apply visual or voice references, compatible with Studio 1.2 | ComfyUI with native MiniMax H3 and the matching VAE |
 
 ## Installation
 
@@ -36,6 +37,17 @@ python -m pip install -r ComfyUI-WepeNerd-Experimental/requirements-3d.txt
 
 For **video tools**, install FFmpeg separately and make both `ffmpeg` and `ffprobe`
 available on PATH. See the [node guide](docs/nodes.md) for controls and formats.
+
+## H3 RefMod
+
+Use **Create H3 Visual RefMod** or **Create H3 Audio RefMod**, then **Save H3 RefMod**.
+Visual Create accepts multiple uploads, individual IMAGE sockets, file lists, or
+a local folder with optional subfolders. **Preview H3 RefMod Images** shows the
+selected crops/padding and budget without a VAE.
+Load Studio 1.2 exports from `models/refmods` with **Load H3 RefMod** and connect
+**Apply H3 RefMod** between your H3 positive conditioning and sampler. Visual
+selection and token budgets are resolved before encoding. See the
+[RefMod guide](docs/refmod.md) for setup, reports, and conditioning limitations.
 
 ## Try 3D placement
 

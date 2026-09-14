@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Add multiple image uploads, growing IMAGE sockets, local file lists, and recursive folder inputs to H3 visual RefMod creation.
+- Add VAE-free previews, shared crop/fit preparation, EXIF correction, configurable transparency backgrounds, and folder cache invalidation.
+
+- Add H3 visual/audio RefMod creation, Studio 1.2 save/load, and positive-conditioning Apply nodes.
+- Select and exactly deduplicate photos before encoding, with explicit overflow policies and retained-view reports.
+- Respect registered RefMod model paths and publish complete files atomically.
+
 ## 0.2.0
 
 - Liquify now belongs to ComfyUI-WepeNerd core 0.2.0 or newer.

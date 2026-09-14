@@ -4,6 +4,12 @@
   "nodes": {
     "WN_LoadOBJ": "product_placement_node",
     "WN_3DProductPlacement": "product_placement_node",
-    "WN_VideoExactFramesFPS": "video_frame_count_node"
+    "WN_VideoExactFramesFPS": "video_frame_count_node",
+    "WN_H3RefModCreate": "refmod_node",
+    "WN_H3RefModPreview": "refmod_node",
+    "WN_H3RefModAudioCreate": "refmod_node",
+    "WN_H3RefModSave": "refmod_node",
+    "WN_H3RefModLoad": "refmod_node",
+    "WN_H3RefModApply": "refmod_node"
   }
 }
