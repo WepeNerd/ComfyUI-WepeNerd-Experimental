@@ -12,6 +12,12 @@ import torch
 from PIL import Image
 from safetensors.torch import save_file
 
+import comfy.cli_args
+
+# ComfyUI otherwise probes CUDA on import; the tests only need the CPU.
+if not torch.cuda.is_available():
+    comfy.cli_args.args.cpu = True
+
 # Import just the RefMod modules, without initializing unrelated 3D HTTP routes.
 package = types.ModuleType("wepenerd_refmod_tests")
 package.__path__ = [str(Path(__file__).resolve().parents[1])]
