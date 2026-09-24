@@ -184,6 +184,58 @@ class RefModTests(unittest.TestCase):
         self.assertEqual(applied[0][1]["minimax_refs"][-1]["ref_audio_t"], 3)
         self.assertIs(nodes.WN_H3RefModApply().apply(positive, visual, False)[0], positive)
 
+    def test_apply_separate_photo_layout(self):
+        visual, _, _ = self.create()
+        positive = [[torch.zeros(1), {}]]
+        stacked, = nodes.WN_H3RefModApply().apply(positive, visual)
+        split, = nodes.WN_H3RefModApply().apply(positive, visual, True, "separate images")
+        self.assertEqual([b["kind"] for b in stacked[0][1]["minimax_refs"]], ["video"])
+        blocks = split[0][1]["minimax_refs"]
+        self.assertEqual([b["kind"] for b in blocks], ["image", "image"])
+        self.assertTrue(torch.equal(torch.cat([b["latent"] for b in blocks], dim=2), visual.latent))
+        self.assertEqual((blocks[0]["latent_h"], blocks[0]["latent_w"]), (4, 4))
+        # The layout survives Save/Load; other files keep their single block.
+        nodes.WN_H3RefModSave().save(visual, "photos.safetensors")
+        loaded, _ = nodes.WN_H3RefModLoad().load("photos.safetensors")
+        self.assertEqual(len(loaded.blocks(True)), 2)
+        studio = core.RefMod(torch.ones(1, 24, 2, 4, 4), {"kind": "video"})
+        audio = core.RefMod(torch.ones(1, 32, 2, 3), {"kind": "audio"})
+        self.assertEqual([len(r.blocks(True)) for r in (studio, audio)], [1, 1])
+        with self.assertRaises(ValueError):
+            nodes.WN_H3RefModApply().apply(positive, visual, True, "average")
+
+    def test_blocks_fit_native_h3_layout(self):
+        try:
+            from comfy.ldm.minimax.model import PackedLayout
+        except ImportError:
+            self.skipTest("ComfyUI without MiniMax H3")
+        visual, _, _ = self.create()
+        audio = core.RefMod(torch.ones(1, 32, 2, 3), {"kind": "audio"})
+        for separate in (False, True):
+            refs = visual.blocks(separate) + audio.blocks()
+            layout = PackedLayout(7, 2, 4, 4, 5, refs=refs)
+            ref_rows = sum(b["latent"].shape[2] * 4 for b in refs if "latent" in b) + 2 * 3
+            self.assertEqual(layout.seq_len, 7 + ref_rows + 2 * 5 + 2 * 4)
+
+    def test_index_parsing_and_budget_messages(self):
+        _, report, _ = self.create(selected_indices=" 1,\n0, ", max_tokens=0)
+        self.assertEqual(report["selected_indices"], [1, 0])
+        with self.assertRaisesRegex(ValueError, "from 0 to 2"):
+            self.create(selected_indices="0;1")
+        with self.assertRaisesRegex(ValueError, "One image at 64x64 needs 4 tokens"):
+            self.create(max_tokens=3, overflow_policy="first selected")
+
+    def test_save_without_hard_links_and_empty_load(self):
+        ref = core.RefMod(torch.ones(1, 24, 1, 4, 4), {"kind": "image"})
+        with patch.object(core.os, "link", side_effect=PermissionError("no hard links")):
+            path, = nodes.WN_H3RefModSave().save(ref, "nolink.safetensors")
+            self.assertTrue(torch.equal(core.RefMod.load(path).latent, ref.latent))
+            with self.assertRaises(FileExistsError):
+                nodes.WN_H3RefModSave().save(ref, "nolink.safetensors")
+        self.assertEqual(sorted(p.name for p in self.root.iterdir()), ["nolink.safetensors"])
+        with self.assertRaisesRegex(FileNotFoundError, "No RefMods found"):
+            nodes.WN_H3RefModLoad().load("")
+
     def audio_vae(self):
         from comfy.ldm.minimax.audio_vae import MiniMaxH3AudioVAE
 

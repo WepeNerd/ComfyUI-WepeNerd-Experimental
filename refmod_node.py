@@ -23,7 +23,18 @@ folder_paths.add_model_folder_path("refmods", os.path.join(folder_paths.models_d
 folder_paths.folder_names_and_paths["refmods"][1].add(".safetensors")
 
 
+def resample(waveform, orig_freq, new_freq):
+    # ComfyUI no longer requires torchaudio; older H3 builds predate comfy.audio.
+    try:
+        from comfy.audio import resample as backend
+    except ImportError:
+        from torchaudio.functional import resample as backend
+    return backend(waveform, orig_freq, new_freq)
+
+
 def refmod_path(filename, saving=False):
+    if not filename and not saving:
+        raise FileNotFoundError("No RefMods found. Copy .safetensors files into ComfyUI/models/refmods and refresh.")
     relative = filename.replace("\\", "/")
     if (not relative or ntpath.splitdrive(relative)[0] or relative.startswith("/")
             or any(p in ("", ".", "..") or ":" in p for p in relative.split("/"))
@@ -165,7 +176,6 @@ class WN_H3RefModAudioCreate:
 
     def create(self, audio, audio_vae, name, description, start_seconds, duration_seconds, max_tokens, overflow_policy):
         # Optional backend import: other nodes can load on ComfyUI versions without H3 audio.
-        import torchaudio
         from comfy.ldm.minimax.audio_vae import MiniMaxH3AudioVAE
 
         if not isinstance(audio_vae.first_stage_model, MiniMaxH3AudioVAE):
@@ -191,7 +201,7 @@ class WN_H3RefModAudioCreate:
         if excerpt.shape[1] == 1:
             excerpt = excerpt.repeat(1, 2, 1)
         if sr != 32000:
-            excerpt = torchaudio.functional.resample(excerpt, sr, 32000)
+            excerpt = resample(excerpt.float(), sr, 32000)
         latents = []
         progress = comfy.utils.ProgressBar(math.ceil(excerpt.shape[-1] / 320000))
         for offset in range(0, excerpt.shape[-1], 320000):
@@ -260,20 +270,26 @@ class WN_H3RefModApply:
     @classmethod
     def INPUT_TYPES(cls):
         return {"required": {"positive": ("CONDITIONING",), "refmod": ("WN_H3_REFMOD",),
-                             "enabled": ("BOOLEAN", {"default": True})}}
+                             "enabled": ("BOOLEAN", {"default": True})},
+                "optional": {"photo_layout": (["video stack", "separate images"], {
+                    "tooltip": "For several photos made by Create: 'video stack' matches Studio; "
+                               "'separate images' adds one native image reference per photo. "
+                               "Loaded Studio files and single images are unaffected."})}}
 
     RETURN_TYPES = ("CONDITIONING",)
     RETURN_NAMES = ("positive",)
     FUNCTION = "apply"
     CATEGORY = "WepeNerd/H3 RefMod"
-    DESCRIPTION = "Append one saved reference to H3 positive conditioning. Chain for multiple references. This does not supply reference pixels or numbered tags to the text encoder."
+    DESCRIPTION = "Append a saved reference to H3 positive conditioning. Chain for multiple references. This does not supply reference pixels or numbered tags to the text encoder."
 
-    def apply(self, positive, refmod, enabled=True):
+    def apply(self, positive, refmod, enabled=True, photo_layout="video stack"):
         if not enabled:
             return (positive,)
-        block = refmod.block()
+        if photo_layout not in ("video stack", "separate images"):
+            raise ValueError("Unknown RefMod photo layout.")
+        blocks = refmod.blocks(photo_layout == "separate images")
         result = []
         for conditioning in positive:
             refs = list(conditioning[1].get("minimax_refs", []))
-            result.extend(node_helpers.conditioning_set_values([conditioning], {"minimax_refs": refs + [block]}))
+            result.extend(node_helpers.conditioning_set_values([conditioning], {"minimax_refs": refs + blocks}))
         return (result,)

@@ -56,6 +56,15 @@ class RefMod:
             block.update(latent_t=self.latent.shape[2], ref_audio_t=0, audio_latent=None)
         return block
 
+    def blocks(self, separate_photos=False):
+        # Each photo in a created stack is a single-frame encode, i.e. a native image block.
+        if (separate_photos and self.metadata["kind"] == "video"
+                and self.metadata.get("representation") == "independently_encoded_photos"):
+            return [{"kind": "image", "latent": self.latent[:, :, i:i + 1],
+                     "latent_h": self.latent.shape[3], "latent_w": self.latent.shape[4]}
+                    for i in range(self.latent.shape[2])]
+        return [self.block()]
+
     def report(self):
         return json.dumps({**self.metadata, "tokens": self.token_count,
                            "shape": list(self.latent.shape)}, indent=2, ensure_ascii=False)
@@ -71,7 +80,14 @@ class RefMod:
                 os.replace(temporary, path)
             else:
                 # Publish a complete file atomically, without racing another save.
-                os.link(temporary, path)
+                try:
+                    os.link(temporary, path)
+                except FileExistsError:
+                    raise
+                except OSError:
+                    # No hard links (e.g. exFAT, some network shares): claim the name, then swap in.
+                    os.close(os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+                    os.replace(temporary, path)
         finally:
             if os.path.exists(temporary):
                 os.unlink(temporary)

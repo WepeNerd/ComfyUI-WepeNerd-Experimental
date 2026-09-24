@@ -109,9 +109,13 @@ def plan_images(images=None, additional_images=None, image_paths="", folder="", 
         raise ValueError("Unknown RefMod overflow policy.")
     colour = background_rgb(background)
     sources = collect_sources(images, additional_images, image_paths, folder, recursive)
-    indices = list(range(len(sources))) if not selected_indices.strip() else [int(i.strip()) for i in selected_indices.split(",")]
+    try:
+        # Tolerate spaces, line breaks and a trailing comma from hand-edited lists.
+        indices = [int(i) for i in re.split(r"[,\s]+", selected_indices.strip()) if i] or list(range(len(sources)))
+    except ValueError:
+        indices = []
     if not indices or len(set(indices)) != len(indices) or any(i < 0 or i >= len(sources) for i in indices):
-        raise ValueError("Select distinct, zero-based image indices within the source list.")
+        raise ValueError(f"Select distinct, zero-based image indices from 0 to {len(sources) - 1}, e.g. 0,2,1.")
     omitted = [{"index": i, "reason": "not selected"} for i in range(len(sources)) if i not in indices]
     seen, kept, hashes, sizes = {}, [], {}, {}
     for index in indices:
@@ -132,7 +136,10 @@ def plan_images(images=None, additional_images=None, image_paths="", folder="", 
     tokens_before_fit = len(kept) * per_image
     if max_tokens and tokens_before_fit > max_tokens:
         capacity = max_tokens // per_image
-        if overflow_policy == "error" or capacity < 1:
+        if capacity < 1:
+            raise ValueError(f"One image at {width}x{height} needs {per_image} tokens; budget is {max_tokens}. "
+                             "Lower short_edge or raise max_tokens.")
+        if overflow_policy == "error":
             raise ValueError(f"Selected images need {tokens_before_fit} tokens; budget is {max_tokens}. "
                              "Select fewer views, lower resolution, or choose first selected.")
         omitted.extend({"index": i, "reason": "token budget"} for i in kept[capacity:])
