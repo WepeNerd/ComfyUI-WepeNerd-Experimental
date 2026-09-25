@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add an Apply `photo_layout` option that sends multi-photo RefMods as separate native H3 image references.
+- Resample audio with ComfyUI's resampler, so audio RefMods no longer need `torchaudio`.
+- Save RefMods on drives without hard links, accept looser `selected_indices`, and clarify empty-folder and single-image budget errors.
+
 - Add multiple image uploads, growing IMAGE sockets, local file lists, and recursive folder inputs to H3 visual RefMod creation.
 - Add VAE-free previews, shared crop/fit preparation, EXIF correction, configurable transparency backgrounds, and folder cache invalidation.
 

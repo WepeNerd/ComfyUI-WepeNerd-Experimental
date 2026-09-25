@@ -17,7 +17,8 @@ descriptions are metadata only.
      Separate sockets can have different sizes; a socket may also carry an IMAGE batch.
    Connect the H3 visual VAE. No IMAGE socket is required for a file/folder job.
 2. Leave `selected_indices` empty for all photos, or enter zero-based indices
-   such as `0,2,1`. Order establishes priority for `first selected` overflow.
+   such as `0,2,1`; spaces, line breaks and a trailing comma are accepted.
+   Order establishes priority for `first selected` overflow.
    Exact RGB duplicates are removed before encoding unless `deduplicate` is off.
 3. Set the short edge and token budget. The default overflow policy stops before
    VAE encoding if the selected set exceeds the budget. `first selected` keeps
@@ -30,6 +31,7 @@ descriptions are metadata only.
    omitted indices and reasons, RGB pixel hashes, canvas, shape, and token count.
 5. Connect the result to **Save H3 RefMod** and Queue. Give it a relative name
    such as `characters/alex.safetensors`. Existing files require `overwrite`.
+   Drives without hard-link support, such as exFAT, still refuse to overwrite.
 
 Source order is `images`, additional sockets in numeric order, explicit file
 paths in line order, then naturally sorted folder files (`view2` before `view10`).
@@ -51,13 +53,15 @@ animated files fail with a clear error. No subject detection is performed.
 The report includes source dimensions and approximate center-crop loss. Source
 IDs contain filenames and socket indices, without absolute source paths.
 No photos are averaged or latent-pooled.
-Multiple photos become one `video`-kind temporal stack for Studio compatibility;
-this is not equivalent to native independent photograph references.
+Multiple photos become one `video`-kind temporal stack for Studio compatibility.
+Apply's `photo_layout` can instead send them as separate native image references
+(see below).
 
 **Create H3 Audio RefMod** accepts an AUDIO input and the H3 audio VAE; it needs
 no images or visual VAE. Select start and duration in seconds. Mono is duplicated
-to stereo and other sample rates are resampled to 32 kHz. `truncate` shortens an
-over-budget excerpt; `error` stops. Encoding uses chunks of up to ten seconds.
+to stereo and other sample rates are resampled to 32 kHz with ComfyUI's own
+resampler; `torchaudio` is used only on older ComfyUI builds without `comfy.audio`.
+`truncate` shortens an over-budget excerpt; `error` stops. Encoding uses chunks of up to ten seconds.
 Chunk joins have not been validated for audible continuity. Use standard ComfyUI
 audio playback/trim nodes to inspect the source excerpt.
 
@@ -71,9 +75,17 @@ Subfolders work; paths outside the registered directories are rejected.
 Connect **Load H3 RefMod** (or either creator) to **Apply H3 RefMod**. Feed positive
 H3 conditioning through Apply and onward to the sampler. Keep your usual H3 model,
 negative conditioning, AV latent, sampling, and decoding setup. Chain Apply nodes
-to add more visual or audio files. Disabled Apply has no effect. Each enabled
-Apply adds one reference: do not also attach the same content through a native
-reference node. A Studio visual/voice pair is loaded and applied separately.
+to add more visual or audio files. Disabled Apply has no effect. Do not also
+attach the same content through a native reference node. A Studio visual/voice
+pair is loaded and applied separately.
+
+`photo_layout` only affects multi-photo files made by Create. `video stack` (the
+default, matching Studio) sends one video reference, so H3 positions each photo
+after the first as a four-frame step of continuous motion. `separate images`
+sends one image reference per photo, as native Reference to Video does for
+several reference images; each photo was encoded on its own, so this matches how
+it was encoded. Which layout gives better likeness has not been tested in
+generation. Loaded Studio files, single images and audio always send one reference.
 
 Apply modifies `minimax_refs` on positive conditioning. It does **not** send
 reference pixels to the multimodal text encoder or establish `<Picture i>`,
@@ -122,7 +134,7 @@ launcher, core, worker and bundled encoder sources.
 | Dataset inspection | Dimensions, crop warnings, token estimates in log | Same preparation as encode, visible thumbnails and JSON report |
 | Different sizes / aspect ratios | First source canvas; center-crop followers | First selected canvas; crop, fit/pad, or stretch |
 | EXIF / transparency | Rotation correction; white background | Rotation correction; configurable background |
-| Visual encoding | Independent full encodes, temporal stack; metadata labels | Same representation and no training |
+| Visual encoding | Independent full encodes, temporal stack; metadata labels | Same representation and no training; Apply can send separate image references |
 | Budget fitting | Encodes all, then latent deduplication and uniform selection | Exact pixel deduplication and explicit budget policy before encode |
 | Defaults | Identity, 1024 short edge, 8192 tokens | Generic, 768 short edge, 8192 tokens; retained for existing node workflows |
 | Voice | File reader, start/duration, separate VAE, up to 10-second chunks | Standard AUDIO input, start/duration, separate VAE, same chunk length; audio-only supported |

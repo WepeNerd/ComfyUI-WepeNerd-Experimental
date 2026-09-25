@@ -14,7 +14,14 @@ jobs:
         with:
           node-version: '22'
       - run: python -m pip install -r requirements.txt aiohttp
-      - run: python -B -m unittest discover -s tests -t . -p 'test_*.py'
+      - name: Install CPU Torch and ComfyUI
+        run: |
+          python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+          git clone --filter=blob:none https://github.com/comfyanonymous/ComfyUI.git "$RUNNER_TEMP/ComfyUI"
+          git -C "$RUNNER_TEMP/ComfyUI" checkout 1568e6cfd04586a4b3c4e1817ea7dde09b1bf9e7
+          python -m pip install -r "$RUNNER_TEMP/ComfyUI/requirements.txt"
+      - run: PYTHONPATH="$RUNNER_TEMP/ComfyUI" python -B -m unittest discover -s tests -t . -p 'test_*.py'
+      - run: node --test tests/refmod_upload.test.mjs
       - name: Frontend syntax
         run: |
           if [ -d js ]; then find js -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -r -n1 node --check; fi
