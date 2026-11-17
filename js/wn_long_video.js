@@ -1,6 +1,17 @@
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
 
+const VIDEO_EXTENSIONS = [".mp4", ".mkv", ".mov", ".webm", ".avi", ".m4v", ".mpeg", ".mpg", ".ts", ".mts", ".m2ts"];
+const isVideoName = name => VIDEO_EXTENSIONS.some(ext => name.toLowerCase().endsWith(ext));
+function draggingFiles(event) {
+    // File names aren't readable until the drop; accept video MIME types and untyped files (often .mkv).
+    const items = [...(event.dataTransfer?.items || [])].filter(item => item.kind === "file");
+    return items.some(item => !item.type || item.type.startsWith("video/"));
+}
+function formatBytes(bytes) {
+    return bytes >= 2 ** 30 ? `${(bytes / 2 ** 30).toFixed(2)} GB` : `${(bytes / 2 ** 20).toFixed(1)} MB`;
+}
+
 const style = document.createElement("style");
 style.textContent = `
 .wn-long-video{display:flex;flex-direction:column;gap:7px;height:100%;padding:6px;box-sizing:border-box;font:12px Arial,sans-serif;color:var(--input-text,#ddd)}
@@ -13,6 +24,7 @@ style.textContent = `
 .wn-long-video canvas{width:100%;height:72px;flex-shrink:0;background:#191d24;border:1px solid #3b424f;border-radius:4px;touch-action:none;cursor:crosshair}
 .wn-long-video input[type=range]{width:100%;margin:0;accent-color:#73c9bb}.wn-long-video .info,.wn-long-video .hint{font-size:11px;line-height:15px;color:#aeb8c8}
 .wn-long-video .strip{height:44px;cursor:pointer}.wn-long-video .note{color:#ffd17d}
+.wn-long-video.dragover{outline:2px solid dodgerblue;outline-offset:-2px;border-radius:6px}
 .wn-long-video .status{min-height:15px;font-size:11px;line-height:15px}.wn-long-video .error{color:#ffaaa0}.wn-long-video .spacer{flex:1}
 `;
 document.head.append(style);
@@ -61,8 +73,12 @@ function setup(node) {
         return b;
     }
     const refresh = button("Refresh files", sourceTools, refreshFiles, "Find videos copied into ComfyUI/input", false);
+    const picker = el("input"); picker.type = "file"; picker.accept = VIDEO_EXTENSIONS.join(",") + ",video/*"; picker.hidden = true;
+    picker.onchange = () => { if (picker.files?.[0]) upload(picker.files[0]); picker.value = ""; };
+    const uploadButton = button("Upload video…", sourceTools, () => picker.click(), "Upload a video from your computer (or drop one on the node)", false);
+    sourceTools.append(picker);
     button("Reload preview", sourceTools, load, "Read source metadata and refresh the preview", false);
-    sourceTools.append(el("span", "", "spacer"), el("span", "Only the in/out range is imported", "hint"));
+    sourceTools.append(el("span", "", "spacer"), el("span", "Drop a video here · only the in/out range is imported", "hint"));
     const play = button("▶ Play selection", transport, togglePlayback);
     button("−1 frame", transport, () => seek(cursor - frameStep()));
     button("+1 frame", transport, () => seek(cursor + frameStep()));
@@ -388,6 +404,78 @@ function setup(node) {
     root.addEventListener("pointerdown", event => event.stopPropagation());
     root.addEventListener("keydown", event => event.stopPropagation());
 
+    let uploading = null;
+    function sendFile(fileObject) {
+        return new Promise((resolve, reject) => {
+            const request = new XMLHttpRequest(); uploading = request;
+            request.open("POST", api.apiURL(`/wepenerd/long_video/upload?${new URLSearchParams({ name: fileObject.name, size: String(fileObject.size) })}`));
+            if (api.user) request.setRequestHeader("Comfy-User", api.user);
+            request.upload.onprogress = event => {
+                if (event.lengthComputable && !removed)
+                    message(`Uploading ${fileObject.name}… ${Math.floor(event.loaded / event.total * 100)}% (${formatBytes(event.loaded)} of ${formatBytes(event.total)})`);
+            };
+            request.onload = () => {
+                let data = {}; try { data = JSON.parse(request.responseText); } catch { /* handled below */ }
+                request.status === 200 && data.name ? resolve(data.name) : reject(new Error(data.error || `Upload failed (${request.status}).`));
+            };
+            request.onerror = () => reject(new Error("Upload failed. Is ComfyUI still running?"));
+            request.onabort = () => reject(new Error("Upload cancelled."));
+            request.send(fileObject);
+        });
+    }
+    async function upload(fileObject) {
+        if (!fileObject || removed) return false;
+        if (!isVideoName(fileObject.name)) { message(`Not a supported video: ${fileObject.name}`, true); return false; }
+        if (uploading) { message("An upload is already running.", true); return false; }
+        uploadButton.disabled = refresh.disabled = true;
+        try {
+            // A file already in ComfyUI/input with the same name and size is used as is.
+            let name = null;
+            const check = await api.fetchApi(`/wepenerd/long_video/existing?${new URLSearchParams({ name: fileObject.name, size: String(fileObject.size) })}`, { signal: abort.signal });
+            if (check.ok) name = (await check.json()).name;
+            if (!name) name = await sendFile(fileObject);
+            if (removed) return true;
+            const values = file.options.values.filter(value => value);
+            if (!values.includes(name)) file.options.values = [...values, name].sort();
+            file.value = name; file.callback?.(name);
+            changed();
+            return true;
+        } catch (error) {
+            if (!removed && error.name !== "AbortError") message(error.message, true);
+            return false;
+        } finally {
+            uploading = null; uploadButton.disabled = refresh.disabled = false;
+        }
+    }
+    function firstVideo(event) { return [...(event.dataTransfer?.files || [])].find(item => isVideoName(item.name)); }
+    function highlight(on) {
+        root.classList.toggle("dragover", on);
+        if (on) app.dragOverNode = node; else if (app.dragOverNode === node) app.dragOverNode = null;
+        app.canvas?.setDirty(false, true);
+    }
+    // Over the graph canvas (title bar, widgets): ComfyUI asks the node and draws the blue outline itself.
+    node.onDragOver = event => draggingFiles(event);
+    node.onDragDrop = async event => {
+        const video = firstVideo(event);
+        if (!video) return false;
+        highlight(false); await upload(video); return true;
+    };
+    // Over this panel: it sits above the canvas, so ComfyUI never sees these drag events. Handle them here.
+    let dragDepth = 0;
+    root.addEventListener("dragenter", event => { if (!draggingFiles(event)) return; event.preventDefault(); dragDepth++; highlight(true); });
+    root.addEventListener("dragover", event => {
+        if (!draggingFiles(event)) return;
+        event.preventDefault(); event.stopPropagation(); event.dataTransfer.dropEffect = "copy";
+        if (!root.classList.contains("dragover")) highlight(true);
+    });
+    root.addEventListener("dragleave", () => { dragDepth = Math.max(0, dragDepth - 1); if (!dragDepth) highlight(false); });
+    root.addEventListener("drop", event => {
+        if (!event.dataTransfer?.files?.length) return;
+        // preventDefault also tells ComfyUI's document-level drop handler to leave this drop alone.
+        event.preventDefault(); event.stopPropagation(); dragDepth = 0; highlight(false);
+        const video = firstVideo(event);
+        if (video) upload(video); else message("Drop a video file (mp4, mkv, mov, webm…).", true);
+    });
     async function refreshFiles() {
         refresh.disabled = true;
         try {
@@ -451,7 +539,7 @@ function setup(node) {
     const observer = new ResizeObserver(draw); observer.observe(canvas); observer.observe(strip);
     const onRemoved = node.onRemoved;
     node.onRemoved = function(...args) {
-        removed = true; version++; stop(); abort.abort(); loadAbort?.abort(); clearTimeout(timer); observer.disconnect();
+        removed = true; version++; stop(); abort.abort(); loadAbort?.abort(); uploading?.abort(); clearTimeout(timer); observer.disconnect();
         movie.removeAttribute("src"); movie.load(); if (objectURL) URL.revokeObjectURL(objectURL); root.remove();
         onRemoved?.apply(this, args);
     };

@@ -79,8 +79,13 @@ Select a short segment from a long, indexed video, including sources over two
 hours. Previewing reads metadata and seeks to individual frames; it does not
 decode the whole video into memory or make a full-length proxy.
 
-1. Copy the source into `ComfyUI/input` or a subfolder. Click **Refresh files**
-   and choose `video_file`. Large files do not need a browser upload.
+1. Drop a video onto the node (it outlines blue), or click **Upload video…**.
+   Uploads stream straight to `ComfyUI/input` with a progress readout and no
+   size limit (ComfyUI's own upload stops at `--max-upload-size`, 100 MB by
+   default). A file already there with the same name and size is reused; a
+   different file with the same name is saved as `name (1).mp4`. You can also
+   copy videos into `ComfyUI/input` or a subfolder yourself, click
+   **Refresh files** and choose `video_file`, which avoids a second copy.
 2. Scrub with the thumbnail strip (the whole source) or the slider below it.
    Set **in** and **out** at the playhead, or type `start_seconds` and
    `end_seconds` in the node widgets. **Set in** makes the frame on screen the

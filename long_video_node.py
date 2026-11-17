@@ -633,7 +633,78 @@ class WN_LoadLongVideo(io.ComfyNode):
         return io.NodeOutput(InputImpl.VideoFromFile(output), images, audio, count, float(plan["fps"]))
 
 
-# ---------------------------------------------------------------- routes
+# ---------------------------------------------------------------- uploads
+
+
+def upload_name(name):
+    """A safe file name for an upload into ComfyUI/input, or ValueError."""
+    name = os.path.basename(str(name).replace("\\", "/")).strip()
+    if not name or name.startswith(".") or any(ord(c) < 32 for c in name):
+        raise ValueError("Invalid file name.")
+    if os.path.splitext(name)[1].lower() not in VIDEO_EXTENSIONS:
+        raise ValueError(f"Not a supported video type: {name}")
+    return name
+
+
+def existing_upload(name, size):
+    """The input-folder video with this name and size, if it is already there (no need to upload)."""
+    root = Path(folder_paths.get_input_directory())
+    stem, ext = os.path.splitext(name)
+    for candidate in [name] + [f"{stem} ({i}){ext}" for i in range(1, 100)]:
+        path = root / candidate
+        if not path.exists():
+            return None
+        try:
+            if path.is_file() and path.stat().st_size == size:
+                return candidate
+        except OSError:
+            return None
+    return None
+
+
+def free_upload_path(name):
+    root = Path(folder_paths.get_input_directory())
+    stem, ext = os.path.splitext(name)
+    for i in range(0, 10000):
+        candidate = name if i == 0 else f"{stem} ({i}){ext}"
+        if not (root / candidate).exists():
+            return root / candidate
+    raise ValueError("Too many files with this name in ComfyUI/input.")
+
+
+async def receive_upload(request, name, size):
+    """Stream the request body to ComfyUI/input. Reading request.content directly isn't bound by
+    ComfyUI's --max-upload-size, which is meant for images and would refuse long videos."""
+    root = Path(folder_paths.get_input_directory())
+    root.mkdir(parents=True, exist_ok=True)
+    if size is not None and shutil.disk_usage(root).free < size + 256 * 2 ** 20:
+        raise ValueError("Not enough free disk space in the ComfyUI input folder for this video.")
+    fd, partial = tempfile.mkstemp(prefix=".wn_upload_", suffix=".part", dir=root)
+    written = 0
+    try:
+        with os.fdopen(fd, "wb") as handle:
+            async for chunk in request.content.iter_chunked(4 * 2 ** 20):
+                written += len(chunk)
+                if size is not None and written > size:
+                    raise ValueError("Upload is larger than announced.")
+                await asyncio.to_thread(handle.write, chunk)
+        if size is not None and written != size:
+            raise ValueError("Upload was interrupted. Drop the video again.")
+        if written == 0:
+            raise ValueError("Empty upload.")
+        # mkstemp makes the file private (0600); give it the permissions a normal new file would get.
+        umask = os.umask(0)
+        os.umask(umask)
+        os.chmod(partial, 0o666 & ~umask)
+        target = free_upload_path(name)
+        os.replace(partial, target)
+    except BaseException:
+        Path(partial).unlink(missing_ok=True)
+        raise
+    _list_cache.clear()
+    return target.relative_to(root).as_posix()
+
+
 
 
 def register_long_video_routes():
@@ -651,6 +722,10 @@ def register_long_video_routes():
                 return web.json_response(await asyncio.to_thread(video_files))
             if action == "presets":
                 return web.json_response(await asyncio.to_thread(load_presets))
+            if action == "existing":
+                name = upload_name(request.query.get("name", ""))
+                found = await asyncio.to_thread(existing_upload, name, int(request.query.get("size", "-1")))
+                return web.json_response({"name": found})
             if action == "proxy_file":
                 name = request.query.get("name", "")
                 path = Path(folder_paths.get_temp_directory()) / name
@@ -680,6 +755,17 @@ def register_long_video_routes():
                     return web.Response(body=data, content_type="image/jpeg", headers={"Cache-Control": "no-store"})
             raise web.HTTPNotFound()
         except (ValueError, OSError, RuntimeError, subprocess.TimeoutExpired) as error:
+            return web.json_response({"error": str(error)}, status=400)
+
+    @instance.routes.post("/wepenerd/long_video/upload")
+    async def long_video_upload(request):
+        try:
+            name = upload_name(request.query.get("name", ""))
+            size = request.content_length
+            if size is None and request.query.get("size"):
+                size = int(request.query["size"])
+            return web.json_response({"name": await receive_upload(request, name, size)})
+        except (ValueError, OSError) as error:
             return web.json_response({"error": str(error)}, status=400)
 
     instance._wn_long_video_routes_registered = True

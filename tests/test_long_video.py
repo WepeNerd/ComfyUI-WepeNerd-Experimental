@@ -276,6 +276,45 @@ class LongVideoRoutes(unittest.IsolatedAsyncioTestCase):
         response = await self.client.get("/wepenerd/long_video/presets")
         self.assertIn("MiniMax H3 (17n+5, 24 fps)", await response.json())
 
+    async def test_upload_streams_past_request_size_limit(self):
+        # web.Application() refuses request bodies over 1 MB when read whole; the upload streams instead.
+        data = (self.root / "clip.mp4").read_bytes() * 120
+        self.assertGreater(len(data), 2 ** 20)
+        response = await self.client.post("/wepenerd/long_video/upload", params={"name": "dropped.mp4"}, data=data)
+        self.assertEqual(response.status, 200, await response.text())
+        self.assertEqual((await response.json())["name"], "dropped.mp4")
+        self.assertEqual((self.root / "dropped.mp4").read_bytes(), data)
+        self.assertIn("dropped.mp4", module.video_files())
+        # Same name and size: reuse. Same name, other content size: a numbered copy, never an overwrite.
+        response = await self.client.get("/wepenerd/long_video/existing", params={"name": "dropped.mp4", "size": str(len(data))})
+        self.assertEqual((await response.json())["name"], "dropped.mp4")
+        response = await self.client.get("/wepenerd/long_video/existing", params={"name": "dropped.mp4", "size": "5"})
+        self.assertIsNone((await response.json())["name"])
+        response = await self.client.post("/wepenerd/long_video/upload", params={"name": "dropped.mp4"}, data=data[:1000])
+        self.assertEqual((await response.json())["name"], "dropped (1).mp4")
+        self.assertEqual(len((self.root / "dropped.mp4").read_bytes()), len(data))
+        self.assertEqual(sorted(p.name for p in self.root.glob(".wn_upload_*")), [])
+
+    async def test_upload_rejects_bad_names_and_short_bodies(self):
+        # Folders in the name are dropped, so a "../" name still lands inside ComfyUI/input.
+        response = await self.client.post("/wepenerd/long_video/upload", params={"name": "../escape.mp4"}, data=b"x" * 10)
+        self.assertEqual((await response.json())["name"], "escape.mp4")
+        self.assertTrue((self.root / "escape.mp4").is_file())
+        for name in ("notes.txt", ".hidden.mp4", "", "sub/.mp4"):
+            with self.subTest(name=name):
+                response = await self.client.post("/wepenerd/long_video/upload", params={"name": name}, data=b"x" * 10)
+                self.assertEqual(response.status, 400)
+                await response.read()
+        self.assertFalse((self.root.parent / "escape.mp4").exists())
+        self.assertEqual(module.upload_name("C:\\Users\\me\\Videos\\take 2.mov"), "take 2.mov")
+        # An interrupted upload (fewer bytes than announced) leaves nothing behind.
+        response = await self.client.post("/wepenerd/long_video/upload", params={"name": "cut.mp4", "size": "100"},
+                                          data=b"x" * 10, headers={"Transfer-Encoding": "chunked"})
+        self.assertEqual(response.status, 400)
+        await response.read()
+        self.assertFalse((self.root / "cut.mp4").exists())
+        self.assertEqual(list(self.root.glob(".wn_upload_*")), [])
+
     async def test_routes_reject_escape_and_invalid_time(self):
         for action in ("metadata", "frame", "source"):
             response = await self.client.get(f"/wepenerd/long_video/{action}", params={"file": "../outside.mp4"})
