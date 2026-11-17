@@ -9,6 +9,7 @@ they mature; this package carries a lower stability commitment.
 | **Load OBJ** | Load an OBJ model and render a clay preview | Python 3D libraries and working OpenGL |
 | **3D Product Placement** | Position a clay object over an image and output a composite and mask | Python 3D libraries and working OpenGL |
 | **Exact Video Frames/FPS** | Produce a chosen frame count and frame rate | FFmpeg and FFprobe |
+| **Load Long Video** | Scrub long recordings and import only a selected segment | FFmpeg and FFprobe |
 | **H3 RefMod** | Create, save, load, and apply visual or voice references, compatible with Studio 1.2 | ComfyUI with native MiniMax H3 and the matching VAE |
 
 ## Installation

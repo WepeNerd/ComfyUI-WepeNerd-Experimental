@@ -3,6 +3,7 @@
 from .product_placement_node import WN_LoadOBJ
 from .product_placement_node import WN_3DProductPlacement
 from .video_frame_count_node import WN_VideoExactFramesFPS
+from .long_video_node import WN_LoadLongVideo, register_long_video_routes
 from .product_placement_node import _register_3d_routes
 from .refmod_node import WN_H3RefModCreate, WN_H3RefModPreview, WN_H3RefModAudioCreate, WN_H3RefModSave, WN_H3RefModLoad, WN_H3RefModApply
 
@@ -11,6 +12,7 @@ NODE_CLASS_MAPPINGS = {
     'WN_LoadOBJ': WN_LoadOBJ,
     'WN_3DProductPlacement': WN_3DProductPlacement,
     'WN_VideoExactFramesFPS': WN_VideoExactFramesFPS,
+    'WN_LoadLongVideo': WN_LoadLongVideo,
     'WN_H3RefModCreate': WN_H3RefModCreate,
     'WN_H3RefModPreview': WN_H3RefModPreview,
     'WN_H3RefModAudioCreate': WN_H3RefModAudioCreate,
@@ -22,6 +24,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "WN_LoadOBJ": "Load OBJ (WepeNerd)",
     "WN_3DProductPlacement": "3D Product Placement (WepeNerd)",
     "WN_VideoExactFramesFPS": "Exact Video Frames/FPS (WepeNerd)",
+    "WN_LoadLongVideo": "Load Long Video (WepeNerd)",
     "WN_H3RefModCreate": "Create H3 Visual RefMod (WepeNerd)",
     "WN_H3RefModPreview": "Preview H3 RefMod Images (WepeNerd)",
     "WN_H3RefModAudioCreate": "Create H3 Audio RefMod (WepeNerd)",
@@ -31,5 +34,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 }
 
 _register_3d_routes()
+register_long_video_routes()
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]

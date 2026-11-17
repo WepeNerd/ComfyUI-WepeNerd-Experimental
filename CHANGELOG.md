@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add Load Long Video: scrub long sources with a thumbnail strip and import only the selected range, frame-accurately, as VIDEO, images, audio, frame count and FPS.
+- Load Long Video: optional `frame_rate` resampling and `format` presets (shared with the core Duration Selector) that trim the count to a model's rule.
+- Load Long Video: proxy playback for codecs the browser can't play, multi-threaded FFV1 import with a progress bar, and cleanup of the node's previous segment.
+
 - Add an Apply `photo_layout` option that sends multi-photo RefMods as separate native H3 image references.
 - Resample audio with ComfyUI's resampler, so audio RefMods no longer need `torchaudio`.
 - Save RefMods on drives without hard links, accept looser `selected_indices`, and clarify empty-folder and single-image budget errors.

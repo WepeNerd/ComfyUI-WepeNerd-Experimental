@@ -70,6 +70,67 @@ OBJ loading and preview accept existing `.obj` files only inside `ComfyUI/input/
 ---
 
 
+## Load Long Video (WepeNerd)
+
+**Category:** `WepeNerd/Video`
+**Outputs:** `video`, `images`, `audio`, `frame_count`, `fps`.
+
+Select a short segment from a long, indexed video, including sources over two
+hours. Previewing reads metadata and seeks to individual frames; it does not
+decode the whole video into memory or make a full-length proxy.
+
+1. Copy the source into `ComfyUI/input` or a subfolder. Click **Refresh files**
+   and choose `video_file`. Large files do not need a browser upload.
+2. Scrub with the thumbnail strip (the whole source) or the slider below it.
+   Set **in** and **out** at the playhead, or type `start_seconds` and
+   `end_seconds` in the node widgets. **Set in** makes the frame on screen the
+   first frame; **Set out** keeps the frame on screen as the last one.
+3. **Fit selection** zooms into the segment. Drag the green handles to trim,
+   drag the green band to move the segment, or click above/below it to scrub.
+   Mouse wheel and **+ / −** zoom around the playhead/pointer. Everything snaps
+   to whole frames.
+4. **Play selection** streams the selected portion from the original file using
+   HTTP byte ranges. If the browser can't play the codec (HEVC, ProRes, MPEG-4
+   and so on), it renders a small H.264 proxy of just the selection and plays
+   that instead; the import always uses the original. Arrow keys step one
+   frame (Shift: ten); **I / O** mark in/out; Space plays.
+5. Queue the workflow. Only the selected range is extracted into a temporary
+   lossless FFV1/MKV with PCM audio from the first audio track, if present.
+
+| Input | What it does |
+| --- | --- |
+| `start_seconds` | In point. The frame shown at this time is the first frame imported. |
+| `end_seconds` | Out point, exclusive, clamped to the end of the video. |
+| `frame_rate` | `0` keeps the source frame rate. Otherwise the selection is resampled to this FPS, starting from the in frame. |
+| `format` | A video model's frame-count rule, from the core pack's Duration Selector presets (built-in copies if the core pack isn't installed). The count is trimmed down to the largest legal count. Picking a preset also sets `frame_rate` to the model's FPS. |
+
+The readout shows the selected frame numbers, the count that will be imported
+(and what the format trims it to), the output FPS and length, and the RAM the
+images need. With a format, **Out: fewer / Snap out to format / Out: more** move
+the out point to legal counts, and a dashed line marks where a trimmed clip
+ends. The readout turns amber outside the preset's frame range.
+
+Connect `VIDEO` to native video nodes, or use `images`, `audio`, `frame_count`
+and `fps` directly. `images` is decoded only when something is connected to it
+(and `audio` likewise); unconnected, it is a 64×64 placeholder. Frame times use
+the source's nominal frame rate; variable-frame-rate sources are stepped and
+counted on that grid. Rotated phone videos import upright and report their
+upright size.
+
+Each run deletes the previous segment this node imported, so re-running with new
+in/out points doesn't fill the temp folder (except with `--cache-lru` or
+`--cache-ram`, where ComfyUI may still return an earlier result). Use Save Video
+to keep a clip. Playback proxies are also kept in the temp folder, at most four.
+Converting a clip to images still uses RAM proportional to its length and
+resolution.
+
+Requires FFmpeg and FFprobe on PATH; proxies need FFmpeg with libx264 or
+libopenh264. Sources must resolve inside `ComfyUI/input`; absolute paths outside
+it and escaping symlinks are rejected. Sources without a usable duration/index
+should first be remuxed to MP4 or MKV.
+
+---
+
 ## Exact Video Frames/FPS (WepeNerd)
 
 
