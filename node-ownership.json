@@ -4,6 +4,7 @@
   "nodes": {
     "WN_LoadOBJ": "product_placement_node",
     "WN_3DProductPlacement": "product_placement_node",
+    "WN_BottlePlaceholder": "bottle_placeholder_node",
     "WN_VideoExactFramesFPS": "video_frame_count_node",
     "WN_LoadLongVideo": "long_video_node",
     "WN_H3RefModCreate": "refmod_node",

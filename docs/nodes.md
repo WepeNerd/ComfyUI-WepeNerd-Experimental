@@ -136,6 +136,87 @@ should first be remuxed to MP4 or MKV.
 
 ---
 
+## Bottle Placeholder
+
+
+**Category:** `WepeNerd/3D`
+
+Draws a simple bottle stand-in over an image: a body and a neck, as two boxes or two cylinders, in perspective. Send the composite to an image-edit workflow to show the model where the product goes and at what proportions. It is aimed at spirits bottles, but any body-plus-neck product fits.
+
+The image is drawn in Python from the widget values, so the output matches the viewport, works through the API, and needs no OpenGL or 3D libraries.
+
+**Viewport**
+
+| Action | Result |
+|---|---|
+| Drag the bottle (or Shift + drag anywhere) | Move it |
+| Drag the background | Orbit the camera: left/right turns the grid, up/down changes the pitch |
+| Click the viewport, then mouse wheel | Resize the bottle |
+| Drag a white dot | Change that dimension: body or neck width, depth or height |
+| Drag the blue dot on the ring | Turn the bottle |
+| Shift + wheel (viewport clicked) | Turn the bottle in 5° steps |
+| Alt + drag | Tip and lean the bottle |
+
+The dots and ring appear while the pointer is over the viewport. The wheel only acts on the bottle after you click the viewport, which outlines it; until then, scrolling over the node zooms the graph as usual. **Bottle preset** sets the shape and dimensions to a common proportion; the values are approximate starting points. **Reset bottle** and **Reset camera** restore placement or camera defaults without touching dimensions.
+
+**Tracing the photo's perspective**
+
+**Trace** works the camera out from the photo. Draw two or more lines along one edge direction of the surface the bottle stands on (red), then two or more along the direction at right angles to it (blue): the two long edges and the two short edges of a table top, for example. Draw a line by dragging, or by clicking its start and then its end; drag an end to adjust it, and press Esc to drop a line you have started. The grid follows as you draw.
+
+| Lines drawn | What is set |
+|---|---|
+| Two directions that both converge on screen | `fov`, `camera_pitch`, `camera_roll` and `camera_orbit` |
+| Two directions, one of them parallel on screen (a square-on view) | Pitch, roll and orbit; `fov` keeps its current value, because it cannot be measured from such lines |
+| One direction only | Pitch and orbit, assuming a level horizon and the current `fov` |
+
+More than two lines per direction are averaged, which helps when edges are soft or short. Longer lines and lines far apart give steadier results. **Undo** removes the last line, **Clear** removes all, and **Done** returns to placing the bottle; the camera settings stay, and the lines are saved with the workflow.
+
+Tracing assumes the photo is not cropped off-centre and has no strong lens distortion. It cannot tell real-world size, so `scale` and `grid_spacing` stay yours to set. The red lines become the grid's red axis; the bottle's `rotate_y` is measured from the grid, so it turns with it.
+
+**Matching the photo's perspective by hand**
+
+The grid lies on the surface the bottle stands on and always passes through its base. Drag the background until the grid lines run along the table edges or floor lines in the photo, then set `fov`: lower values flatten the perspective, higher values exaggerate it. The amber line is the horizon; the red, blue and green lines are the surface's two axes and the vertical through the bottle. `camera_roll` levels a tilted photo.
+
+A directly connected `Load Image` appears in the viewport immediately. For any other source, run the workflow once and the viewport shows the image the node received.
+
+| Input | Description |
+|---|---|
+| `image` | Image to draw on. Sets the output size; every image in a batch gets the same placeholder |
+| `shape` | `box` or `cylinder`, applied to both parts |
+| `style` | `shaded` draws coloured faces with edges; `outline` draws the edges only, with lines behind a nearer face hidden |
+| `body_width` / `body_height` / `body_depth` | Body dimensions. Units are arbitrary; centimetres work well |
+| `neck_width` / `neck_height` / `neck_depth` | Neck dimensions, in the same units |
+| `pos_x` / `pos_y` | Position of the base centre, 0 to 1 across and down the image |
+| `scale` | Size of one unit as a percentage of the image height, so placement carries over between resolutions |
+| `rotate_y` | Turn around the vertical axis, relative to the grid |
+| `rotate_x` / `rotate_z` | Tip forwards/backwards and lean left/right about the base |
+| `fov` | Vertical field of view of the camera |
+| `camera_pitch` | How far the camera looks down at the surface |
+| `camera_orbit` | Rotates the surface grid, and the bottle with it |
+| `camera_roll` | Tilts the horizon |
+| `body_color` / `neck_color` / `label_color` | Hex colours, e.g. `#D0D0D0` |
+| `front_label` | Draw a patch on the front of the body, so the label side is clear even on a cylinder |
+| `fill_opacity` | Opacity of the shaded faces. Edges are always drawn solid |
+| `outline_color` | Edge line colour as hex. In the `outline` style this is the only colour drawn |
+| `outline_width` | Edge line width in pixels at 1024 px image height; 0 turns edges off |
+| `show_grid` | Show the grid in the viewport |
+| `grid_spacing` | Grid cell size, in bottle units |
+| `grid_in_output` | Also draw the grid into the output image |
+
+| Output | Type | Description |
+|---|---|---|
+| `composite` | IMAGE | The image with the placeholder drawn over it |
+| `placeholder_mask` | MASK | Mask of the placeholder's whole silhouette, in either style; never includes the grid |
+
+Sliders have no hover text, so nothing covers the value while you drag; the table above describes each one.
+
+The defaults are light grey faces at 50% opacity with black edges.
+
+If you train a LoRA on these placeholders, keep the style, colours, opacity, outline and label settings the same between training data and use.
+
+---
+
+
 ## Exact Video Frames/FPS (WepeNerd)
 
 

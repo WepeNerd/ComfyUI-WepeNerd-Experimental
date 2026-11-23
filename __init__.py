@@ -5,12 +5,14 @@ from .product_placement_node import WN_3DProductPlacement
 from .video_frame_count_node import WN_VideoExactFramesFPS
 from .long_video_node import WN_LoadLongVideo, register_long_video_routes
 from .product_placement_node import _register_3d_routes
+from .bottle_placeholder_node import WN_BottlePlaceholder
 from .refmod_node import WN_H3RefModCreate, WN_H3RefModPreview, WN_H3RefModAudioCreate, WN_H3RefModSave, WN_H3RefModLoad, WN_H3RefModApply
 
 WEB_DIRECTORY = "./js"
 NODE_CLASS_MAPPINGS = {
     'WN_LoadOBJ': WN_LoadOBJ,
     'WN_3DProductPlacement': WN_3DProductPlacement,
+    'WN_BottlePlaceholder': WN_BottlePlaceholder,
     'WN_VideoExactFramesFPS': WN_VideoExactFramesFPS,
     'WN_LoadLongVideo': WN_LoadLongVideo,
     'WN_H3RefModCreate': WN_H3RefModCreate,
@@ -23,6 +25,7 @@ NODE_CLASS_MAPPINGS = {
 NODE_DISPLAY_NAME_MAPPINGS = {
     "WN_LoadOBJ": "Load OBJ (WepeNerd)",
     "WN_3DProductPlacement": "3D Product Placement (WepeNerd)",
+    "WN_BottlePlaceholder": "Bottle Placeholder (WepeNerd)",
     "WN_VideoExactFramesFPS": "Exact Video Frames/FPS (WepeNerd)",
     "WN_LoadLongVideo": "Load Long Video (WepeNerd)",
     "WN_H3RefModCreate": "Create H3 Visual RefMod (WepeNerd)",

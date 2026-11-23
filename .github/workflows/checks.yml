@@ -21,7 +21,7 @@ jobs:
           git -C "$RUNNER_TEMP/ComfyUI" checkout 1568e6cfd04586a4b3c4e1817ea7dde09b1bf9e7
           python -m pip install -r "$RUNNER_TEMP/ComfyUI/requirements.txt"
       - run: PYTHONPATH="$RUNNER_TEMP/ComfyUI" python -B -m unittest discover -s tests -t . -p 'test_*.py'
-      - run: node --test tests/refmod_upload.test.mjs
+      - run: node --test tests/refmod_upload.test.mjs tests/bottle_geometry.test.mjs
       - name: Frontend syntax
         run: |
           if [ -d js ]; then find js -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -r -n1 node --check; fi
