@@ -8,6 +8,7 @@ they mature; this package carries a lower stability commitment.
 |---|---|---|
 | **Load OBJ** | Load an OBJ model and render a clay preview | Python 3D libraries and working OpenGL |
 | **3D Product Placement** | Position a clay object over an image and output a composite and mask | Python 3D libraries and working OpenGL |
+| **Bottle Placeholder** | Draw a body-and-neck bottle guide in perspective over an image, with an interactive viewport | None |
 | **Exact Video Frames/FPS** | Produce a chosen frame count and frame rate | FFmpeg and FFprobe |
 | **Load Long Video** | Scrub long recordings and import only a selected segment | FFmpeg and FFprobe |
 | **H3 RefMod** | Create, save, load, and apply visual or voice references, compatible with Studio 1.2 | ComfyUI with native MiniMax H3 and the matching VAE |
@@ -60,6 +61,15 @@ IMAGE, position the object, and click **Queue**.
 OBJ files must be inside `ComfyUI/input/3d` or `ComfyUI/models/3d`. Relative paths
 resolve in those folders. Uploads are limited to 64 MiB and choose unique names.
 Absolute paths and symlinks that resolve outside those folders are rejected.
+
+## Bottle Placeholder
+
+Connect an image to **Bottle Placeholder**, pick a preset or set the body and neck
+dimensions, then place the guide in the viewport: drag the bottle to move it and
+click the viewport then scroll to resize. To match the photo's perspective, use
+**Trace** and draw lines along the edges of the surface, or drag the background
+to line the grid up by hand. Send `composite` to your image-edit workflow. It works on the base
+install; see the [node guide](docs/nodes.md#bottle-placeholder) for all controls.
 
 ## Known limitations
 
